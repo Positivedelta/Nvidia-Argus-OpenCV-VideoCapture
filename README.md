@@ -19,7 +19,5 @@ cmake ..
 ```
 
 #### Tested Using
-```
-JetPack 4.6.4, 5.0.2 and 5.1.1
-OpenCV 4.1.1, 4.6.0 and 4.8.0
-```
+- JetPack `v4.6.4`, `v5.0.2` and `v5.1.1`
+- OpenCV `v4.1.1`, `v4.6.0` and `v4.8.0`
