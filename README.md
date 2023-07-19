@@ -1,5 +1,5 @@
 # An Argus OpenCV VideoCapture class for the Jetson Orin, Xavier & Nano
-#### For use with supported CSI cameras, written in C++17
+#### For use with supported L4T CSI cameras, written in C++17
 
 #### Notes
 - It may be neccessary to edit `CMakeLists.txt` and/or the `cmake/` helper scripts in order to find the Argus and NVMMAPI dependencies
