@@ -6,6 +6,8 @@
 #include <iostream>
 #include <string>
 
+#include <opencv2/opencv.hpp>
+
 #include "argus_opencv_video_capture.hpp"
 
 int32_t main(int32_t argc, char** argv)
@@ -15,6 +17,19 @@ int32_t main(int32_t argc, char** argv)
     try
     {
         ArgusVideoCapture::displayAttachedCameraInfo();
+
+        const auto camera = 0;
+        const auto sensorMode = 5;
+        auto capture = ArgusVideoCapture(camera, sensorMode);
+
+        auto cvFrame = capture.grab();
+        cv::imshow("CSI Camera Image Grab", cvFrame);
+
+        const auto cvFrameSize = capture.getResolution();
+        std::cout << "Resolution: (" << cvFrameSize.width << ", " << cvFrameSize.height << ")\n";
+        std::cout << "Timestamp: " << capture.getTimestamp() << ", Capture ID: " << capture.getCaptureId() << "\n";
+
+        cv::waitKey(-1);
     }
     catch (const std::string& message)
     {

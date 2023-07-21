@@ -3,6 +3,7 @@ cmake_minimum_required (VERSION 3.10)
 project(argus-opencv-video-capture)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" "${CMAKE_MODULE_PATH}")
+set (CMAKE_CXX_STANDARD 17)
 
 find_package(Argus REQUIRED)
 find_package(NVMMAPI REQUIRED)
