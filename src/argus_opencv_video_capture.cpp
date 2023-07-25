@@ -152,7 +152,7 @@ cv::Mat ArgusVideoCapture::grab()
     NvBufferGetParams(dmaBufferFd, &dmaBufferParams);
     std::cout << "**** Pitch: " << dmaBufferParams.pitch[0] << ", Offset: " << dmaBufferParams.offset[0] << "\n"; */
 
-    NvBufferMemMap(dmaBufferFd, 0, NvBufferMem_Read, &cvImageBuffer);
+    NvBufferMemMap(dmaBufferFd, 0, NvBufferMem_Read_Write, &cvImageBuffer);
     NvBufferMemSyncForCpu(dmaBufferFd, 0, &cvImageBuffer);
     return cv::Mat(resolution.height(), resolution.width(), CV_8UC4, cvImageBuffer);
 }
