@@ -22,14 +22,22 @@ int32_t main(int32_t argc, char** argv)
         const auto sensorMode = 5;
         auto capture = ArgusVideoCapture(camera, sensorMode);
 
-        auto cvFrame = capture.grab();
-        cv::imshow("CSI Camera Image Grab", cvFrame);
+        auto previousTimestamp = uint64_t(0);
+        while (true)
+        {
+            auto cvFrame = capture.grab();
+            cv::imshow("CSI Camera Image Grab", cvFrame);
 
-        const auto cvFrameSize = capture.getResolution();
-        std::cout << "Resolution: (" << cvFrameSize.width << ", " << cvFrameSize.height << ")\n";
-        std::cout << "Timestamp: " << capture.getTimestamp() << ", Capture ID: " << capture.getCaptureId() << "\n";
+//          const auto cvFrameSize = capture.getResolution();
+//          std::cout << "Resolution: (" << cvFrameSize.width << ", " << cvFrameSize.height << ")\n";
+//          std::cout << "Timestamp: " << capture.getTimestamp() << ", Capture ID: " << capture.getCaptureId() << "\n";
 
-        cv::waitKey(-1);
+            auto fps = 1000000000.0 / int32_t(capture.getTimestamp() - previousTimestamp);
+            previousTimestamp = capture.getTimestamp();
+            std::cout << fps << "\n";
+
+            cv::waitKey(1);
+        }
     }
     catch (const std::string& message)
     {

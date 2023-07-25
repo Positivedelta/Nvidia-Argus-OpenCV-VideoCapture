@@ -6,7 +6,6 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <sys/mman.h>
 
 #include <Argus/Argus.h>
 #include <Argus/Ext/DolWdrSensorMode.h>
@@ -15,10 +14,8 @@
 
 #include "argus_opencv_video_capture.hpp"
 
-// FIXME! how should the dmsBufferId property be initialised
-//
 ArgusVideoCapture::ArgusVideoCapture(const int32_t cameraDeviceIndex, const int32_t sensorModeIndex):
-    cameraDeviceIndex(cameraDeviceIndex), sensorModeIndex(sensorModeIndex), timestamp(0U) {
+    cameraDeviceIndex(cameraDeviceIndex), sensorModeIndex(sensorModeIndex), dmaBufferFd(0), cvImageBuffer(nullptr), timestamp(uint64_t(0)) {
 
     // set up the Argus API framework
     //
@@ -59,12 +56,12 @@ ArgusVideoCapture::ArgusVideoCapture(const int32_t cameraDeviceIndex, const int3
 
     iSession = Argus::interface_cast<Argus::ICaptureSession>(captureSession);
     if (!iSession) throw std::string("Cannot get the Argus::ICaptureSession interface");
-/*
+
     // instantiate a stream between the Argus camera image capturing sub-system (the producer) and the image acquisition code (the consumer)
     // a consumer object is then created from the stream and is used to request an image frame, a successfully submitted capture request activates
     // the stream's functionality and eventually make the frame available for acquisition
     //
-    streamSettings = Argus::UniqueObj<Argus::OutputStreamSettings>(iSession->createOutputStreamSettings(Argus::STREAM_TYPE_EGL));
+    auto streamSettings = Argus::UniqueObj<Argus::OutputStreamSettings>(iSession->createOutputStreamSettings(Argus::STREAM_TYPE_EGL));
     auto* iEGLStreamSettings = Argus::interface_cast<Argus::IEGLOutputStreamSettings>(streamSettings);
     if (!iEGLStreamSettings) throw std::string("Cannot get the Argus::IEGLOutputStreamSettings interface");
     iEGLStreamSettings->setPixelFormat(Argus::PIXEL_FMT_YCbCr_420_888);
@@ -74,7 +71,7 @@ ArgusVideoCapture::ArgusVideoCapture(const int32_t cameraDeviceIndex, const int3
     stream = Argus::UniqueObj<Argus::OutputStream>(iSession->createOutputStream(streamSettings.get()));
     if (!stream) throw std::string("Failed to create an Argus::OutputStream instance");
 
-    auto consumer = Argus::UniqueObj<EGLStream::FrameConsumer>(EGLStream::FrameConsumer::create(stream.get()));
+    consumer = Argus::UniqueObj<EGLStream::FrameConsumer>(EGLStream::FrameConsumer::create(stream.get()));
     iFrameConsumer = Argus::interface_cast<EGLStream::IFrameConsumer>(consumer);
     if (!iFrameConsumer) throw std::string("Failed to initialize the EGLStream::IFrameConsumer instance");
 
@@ -87,79 +84,38 @@ ArgusVideoCapture::ArgusVideoCapture(const int32_t cameraDeviceIndex, const int3
 
     auto* iSourceSettings = Argus::interface_cast<Argus::ISourceSettings>(request);
     if (!iSourceSettings) throw std::string("Failed to get the Argus::ISourceSettings interface");
-    iSourceSettings->setSensorMode(sensorMode);
+    iSourceSettings->setSensorMode(sensorModes[sensorModeIndex]);
 
     // configure camera timestamp in nano seconds since boot up
     //
     iEventProvider = Argus::interface_cast<Argus::IEventProvider>(captureSession);
     if (!iEventProvider) throw std::string("Failed to get the Argus::IEventProvider interface");
-*/
-//  auto eventTypes = std::vector<Argus::EventType>();
-//  eventTypes.push_back(Argus::EVENT_TYPE_CAPTURE_COMPLETE);
-//  queue = Argus::UniqueObj<Argus::EventQueue>(iEventProvider->createEventQueue(eventTypes));
-//  iQueue = Argus::interface_cast<Argus::IEventQueue>(queue);
-//  if (!iQueue) throw std::string("Failed to get the Argus::IEventQueue interface");
+
+    auto eventTypes = std::vector<Argus::EventType>();
+    eventTypes.push_back(Argus::EVENT_TYPE_CAPTURE_COMPLETE);
+    queue = Argus::UniqueObj<Argus::EventQueue>(iEventProvider->createEventQueue(eventTypes));
+    iQueue = Argus::interface_cast<Argus::IEventQueue>(queue);
+    if (!iQueue) throw std::string("Failed to get the Argus::IEventQueue interface");
 }
 
-// FIXME! the dmsBufferId value may be invalid, i.e. not initialised
-//
 ArgusVideoCapture::~ArgusVideoCapture()
 {
-    NvBufferDestroy(dmaBufferFd);
+    if (dmaBufferFd)
+    {
+        NvBufferMemUnMap(dmaBufferFd, 0, &cvImageBuffer);
+        NvBufferDestroy(dmaBufferFd);
+    }
 }
 
 cv::Mat ArgusVideoCapture::grab()
 {
-    // instantiate a stream between the Argus camera image capturing sub-system (the producer) and the image acquisition code (the consumer)
-    // a consumer object is then created from the stream and is used to request an image frame, a successfully submitted capture request activates
-    // the stream's functionality and eventually make the frame available for acquisition
-    //
-    auto streamSettings = Argus::UniqueObj<Argus::OutputStreamSettings>(iSession->createOutputStreamSettings(Argus::STREAM_TYPE_EGL));
-    auto* iEGLStreamSettings = Argus::interface_cast<Argus::IEGLOutputStreamSettings>(streamSettings);
-    if (!iEGLStreamSettings) throw std::string("Cannot get the Argus::IEGLOutputStreamSettings interface");
-    iEGLStreamSettings->setPixelFormat(Argus::PIXEL_FMT_YCbCr_420_888);
-    iEGLStreamSettings->setResolution(resolution);
-    iEGLStreamSettings->setMetadataEnable(true);
-
-    auto stream = Argus::UniqueObj<Argus::OutputStream>(iSession->createOutputStream(streamSettings.get()));
-    if (!stream) throw std::string("Failed to create an Argus::OutputStream instance");
-
-    auto consumer = Argus::UniqueObj<EGLStream::FrameConsumer>(EGLStream::FrameConsumer::create(stream.get()));
-    auto* iFrameConsumer = Argus::interface_cast<EGLStream::IFrameConsumer>(consumer);
-    if (!iFrameConsumer) throw std::string("Failed to initialize the EGLStream::IFrameConsumer instance");
-
-    auto request = Argus::UniqueObj<Argus::Request>(iSession->createRequest(Argus::CAPTURE_INTENT_STILL_CAPTURE));
-    auto* iRequest = Argus::interface_cast<Argus::IRequest>(request);
-    if (!iRequest) throw std::string("Failed to get the capture Argus::IRequest interface");
-
-    auto status = iRequest->enableOutputStream(stream.get());
-    if (status != Argus::STATUS_OK) throw std::string("Failed to enable the capture request stream");
-
-    auto* iSourceSettings = Argus::interface_cast<Argus::ISourceSettings>(request);
-    if (!iSourceSettings) throw std::string("Failed to get the Argus::ISourceSettings interface");
-    iSourceSettings->setSensorMode(sensorModes[sensorModeIndex]);
-//  iSourceSettings->setSensorMode(sensorMode);
-
-    // configure camera timestamp in nano seconds since boot up
-    //
-    auto* iEventProvider = Argus::interface_cast<Argus::IEventProvider>(captureSession);
-    if (!iEventProvider) throw std::string("Failed to get the Argus::IEventProvider interface");
-
-    auto eventTypes = std::vector<Argus::EventType>();
-    eventTypes.push_back(Argus::EVENT_TYPE_CAPTURE_COMPLETE);
-    auto queue = Argus::UniqueObj<Argus::EventQueue>(iEventProvider->createEventQueue(eventTypes));
-    auto* iQueue = Argus::interface_cast<Argus::IEventQueue>(queue);
-    if (!iQueue) throw std::string("Failed to get the Argus::IEventQueue interface");
-
-
-
     auto requestId = iSession->capture(request.get());
     if (!requestId) throw std::string("Failed to submit the capture request");
 
     // grab the camera frame timestamp in nano seconds since boot up
     // wait for the capture event, will timeout after 1s
     //
-    status = iEventProvider->waitForEvents(queue.get(), ONE_SECOND_IN_NANOSECONDS);
+    auto status = iEventProvider->waitForEvents(queue.get(), ONE_SECOND_IN_NANOSECONDS);
     if (status == Argus::STATUS_TIMEOUT) throw std::string("Argus timeout whilst waiting on an image capture completion event");
     if (status != Argus::STATUS_OK) std::string("Failed to wait for an image capture completion event");
 
@@ -185,18 +141,20 @@ cv::Mat ArgusVideoCapture::grab()
     auto* iNativeBuffer = Argus::interface_cast<EGLStream::NV::IImageNativeBuffer>(image);
     if (!iNativeBuffer) throw std::string("IImageNativeBuffer not supported for image type");
 
+    if (dmaBufferFd)
+    {
+        NvBufferMemUnMap(dmaBufferFd, 0, &cvImageBuffer);
+        NvBufferDestroy(dmaBufferFd);
+    }
+
     dmaBufferFd = iNativeBuffer->createNvBuffer(resolution, NvBufferColorFormat_ARGB32, NvBufferLayout_Pitch);
-    iNativeBuffer->copyToNvBuffer(dmaBufferFd);
-
-    auto dmaBufferParams = NvBufferParams();
+/*  auto dmaBufferParams = NvBufferParams();
     NvBufferGetParams(dmaBufferFd, &dmaBufferParams);
+    std::cout << "**** Pitch: " << dmaBufferParams.pitch[0] << ", Offset: " << dmaBufferParams.offset[0] << "\n"; */
 
-    const auto pitch = dmaBufferParams.pitch[0];
-    const auto offset = dmaBufferParams.offset[0];
-    auto* dmaBuffer = (uint8_t*)mmap(nullptr, pitch * resolution.height(), PROT_READ | PROT_WRITE, MAP_SHARED, dmaBufferFd, offset);
-//  std::cout << "**** Pitch: " << pitch << ", Offset: " << offset << "\n";
-
-    return cv::Mat(cv::Size2i(resolution.width(), resolution.height()), CV_8UC4, dmaBuffer);
+    NvBufferMemMap(dmaBufferFd, 0, NvBufferMem_Read, &cvImageBuffer);
+    NvBufferMemSyncForCpu(dmaBufferFd, 0, &cvImageBuffer);
+    return cv::Mat(resolution.height(), resolution.width(), CV_8UC4, cvImageBuffer);
 }
 
 cv::Size2i ArgusVideoCapture::getResolution() const

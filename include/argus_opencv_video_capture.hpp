@@ -25,18 +25,19 @@ class ArgusVideoCapture
         std::vector<Argus::CameraDevice*> cameraDevices;
         std::vector<Argus::SensorMode*> sensorModes;
         Argus::Size2D<uint32_t> resolution;
+        Argus::UniqueObj<Argus::CaptureSession> captureSession;
         Argus::ICaptureSession* iSession;
-//      Argus::IEventProvider* iEventProvider;
-//      Argus::UniqueObj<Argus::Request> request;
-//      Argus::UniqueObj<Argus::EventQueue> queue;
-//      Argus::IEventQueue* iQueue;
-//      EGLStream::IFrameConsumer* iFrameConsumer;
-        int32_t dmaBufferFd;
+        Argus::UniqueObj<Argus::OutputStream> stream;
+        Argus::UniqueObj<EGLStream::FrameConsumer> consumer;
+        EGLStream::IFrameConsumer* iFrameConsumer;
+        Argus::UniqueObj<Argus::Request> request;
+        Argus::IEventProvider* iEventProvider;
+        Argus::UniqueObj<Argus::EventQueue> queue;
+        Argus::IEventQueue* iQueue;
+        uint32_t dmaBufferFd;
+        void *cvImageBuffer;
         uint32_t captureId;
         uint64_t timestamp;
-
-        Argus::UniqueObj<Argus::CaptureSession> captureSession;
-//      Argus::UniqueObj<Argus::OutputStreamSettings> streamSettings;
 
     public:
         static void displayAttachedCameraInfo();
