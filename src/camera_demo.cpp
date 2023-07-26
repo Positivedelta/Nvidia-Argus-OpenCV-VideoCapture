@@ -23,6 +23,7 @@ int32_t main(int32_t argc, char** argv)
         const auto camera = 0;
         const auto sensorMode = 5;
         auto capture = ArgusVideoCapture(camera, sensorMode);
+        capture.setFrameRate(30.0);
 
         const auto fpsLocation = cv::Point(6, 30);
         const auto fpsColour = cv::Scalar(0xff, 0xff, 0xff);

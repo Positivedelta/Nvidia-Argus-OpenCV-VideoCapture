@@ -82,9 +82,23 @@ ArgusVideoCapture::ArgusVideoCapture(const int32_t cameraDeviceIndex, const int3
     status = iRequest->enableOutputStream(stream.get());
     if (status != Argus::STATUS_OK) throw std::string("Failed to enable the capture request stream");
 
-    auto* iSourceSettings = Argus::interface_cast<Argus::ISourceSettings>(request);
+    iSourceSettings = Argus::interface_cast<Argus::ISourceSettings>(request);
     if (!iSourceSettings) throw std::string("Failed to get the Argus::ISourceSettings interface");
     iSourceSettings->setSensorMode(sensorModes[sensorModeIndex]);
+
+    // FIXME! add set / get methods for any appropriate source and control settings
+    //
+//  auto* iAutoControlSettings = Argus::interface_cast<Argus::IAutoControlSettings>(iRequest->getAutoControlSettings());
+//  iAutoControlSettings->setAwbMode(Argus::AWB_MODE_OFF);
+//  iAutoControlSettings->setAwbLock(true);
+//  iAutoControlSettings->setAeAntibandingMode(Argus::AE_ANTIBANDING_MODE_OFF);
+//  iAutoControlSettings->setAeLock(true);
+
+    // FIXME! should there be a default frame rate?
+    //        1, set here to 30 FPS
+    //        2, although if you print the value beforehand it's set to 30 FPS, is the driver doing this?
+    //
+    iSourceSettings->setFrameDurationRange(Argus::Range<uint64_t>(33333334L));
 
     // configure camera timestamp in nano seconds since boot up
     //
@@ -105,6 +119,11 @@ ArgusVideoCapture::~ArgusVideoCapture()
         NvBufferMemUnMap(dmaBufferFd, 0, &cvImageBuffer);
         NvBufferDestroy(dmaBufferFd);
     }
+}
+
+void ArgusVideoCapture::setFrameRate(const double frameRate)
+{
+    iSourceSettings->setFrameDurationRange(Argus::Range<uint64_t>(1000000000 / frameRate));
 }
 
 cv::Mat ArgusVideoCapture::grab()

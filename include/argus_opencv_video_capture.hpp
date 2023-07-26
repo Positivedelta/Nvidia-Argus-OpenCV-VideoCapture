@@ -31,10 +31,11 @@ class ArgusVideoCapture
         Argus::UniqueObj<EGLStream::FrameConsumer> consumer;
         EGLStream::IFrameConsumer* iFrameConsumer;
         Argus::UniqueObj<Argus::Request> request;
+        Argus::ISourceSettings* iSourceSettings;
         Argus::IEventProvider* iEventProvider;
         Argus::UniqueObj<Argus::EventQueue> queue;
         Argus::IEventQueue* iQueue;
-        uint32_t dmaBufferFd;
+        int32_t dmaBufferFd;
         void *cvImageBuffer;
         uint32_t captureId;
         uint64_t timestamp;
@@ -45,6 +46,7 @@ class ArgusVideoCapture
         ArgusVideoCapture(const int32_t deviceIndex, const int32_t sensorModeIndex);
         ~ArgusVideoCapture();
 
+        void setFrameRate(const double frameRate);
         cv::Mat grab();
         cv::Size2i getResolution() const;
         uint64_t getTimestamp() const;
