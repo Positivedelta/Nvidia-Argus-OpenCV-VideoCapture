@@ -16,9 +16,11 @@
 class ArgusVideoCapture
 {
     private:
-        const static inline uint64_t ONE_SECOND_IN_NANOSECONDS = 1000000000U;
-        const static inline uint64_t FIVE_SECONDS_IN_NANOSECONDS = 5000000000U;
+        const static inline uint64_t ONE_SECOND_IN_NANOSECONDS = 1000000000UL;
+        const static inline uint64_t FIVE_SECONDS_IN_NANOSECONDS = 5000000000UL;
 
+        // FIXME! review these properties, some may not be needed
+        //
         const int32_t cameraDeviceIndex, sensorModeIndex;
         Argus::UniqueObj<Argus::CameraProvider> cameraProvider;
         Argus::ICameraProvider* iCameraProvider;
@@ -43,7 +45,7 @@ class ArgusVideoCapture
         ArgusVideoCapture(const int32_t deviceIndex, const int32_t sensorModeIndex);
         ~ArgusVideoCapture();
 
-        void setFrameRate(const double frameRate);
+        bool setFrameRate(const double frameRate);
         cv::Mat grab();
         cv::Size2i getResolution() const;
         uint64_t getTimestamp() const;
