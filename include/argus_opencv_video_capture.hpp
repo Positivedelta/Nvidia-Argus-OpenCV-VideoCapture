@@ -32,9 +32,6 @@ class ArgusVideoCapture
         EGLStream::IFrameConsumer* iFrameConsumer;
         Argus::UniqueObj<Argus::Request> request;
         Argus::ISourceSettings* iSourceSettings;
-        Argus::IEventProvider* iEventProvider;
-        Argus::UniqueObj<Argus::EventQueue> queue;
-        Argus::IEventQueue* iQueue;
         int32_t dmaBufferFd;
         void *cvImageBuffer;
         uint32_t captureId;
