@@ -15,7 +15,8 @@
 #include "argus_opencv_video_capture.hpp"
 
 ArgusVideoCapture::ArgusVideoCapture(const int32_t cameraDeviceIndex, const int32_t sensorModeIndex):
-    cameraDeviceIndex(cameraDeviceIndex), sensorModeIndex(sensorModeIndex), dmaBufferFd(0), cvImageBuffer(nullptr), timestamp(uint64_t(0)) {
+    cameraDeviceIndex(cameraDeviceIndex), sensorModeIndex(sensorModeIndex), argusCameraSettings(ArgusCameraSettings(iSourceSettings, iAutoControlSettings)),
+    dmaBufferFd(0), cvImageBuffer(nullptr), timestamp(uint64_t(0)) {
 
     // set up the Argus API framework
     //
@@ -86,19 +87,18 @@ ArgusVideoCapture::ArgusVideoCapture(const int32_t cameraDeviceIndex, const int3
     if (!iSourceSettings) throw std::string("Failed to get the Argus::ISourceSettings interface");
     iSourceSettings->setSensorMode(sensorModes[sensorModeIndex]);
 
-    // FIXME! add set / get methods for any appropriate source and control settings
-    //
-//  auto* iAutoControlSettings = Argus::interface_cast<Argus::IAutoControlSettings>(iRequest->getAutoControlSettings());
-//  iAutoControlSettings->setAwbMode(Argus::AWB_MODE_OFF);
+    iAutoControlSettings = Argus::interface_cast<Argus::IAutoControlSettings>(iRequest->getAutoControlSettings());
+    if (!iAutoControlSettings) throw std::string("Failed to get the Argus::IAutoControlSettings interface");
+//  iAutoControlSettings->setAwbMode(Argus::AWB_MODE_AUTO);
 //  iAutoControlSettings->setAwbLock(true);
 //  iAutoControlSettings->setAeAntibandingMode(Argus::AE_ANTIBANDING_MODE_OFF);
 //  iAutoControlSettings->setAeLock(true);
 
-    // FIXME! should there be a default frame rate?
-    //        1, set here to 30 FPS
-    //        2, although if you print the value beforehand it's set to 30 FPS, is the driver doing this?
-    //
-    iSourceSettings->setFrameDurationRange(Argus::Range<uint64_t>(33333334L));
+//  // FIXME! should there be a default frame rate?
+//  //        1, set here to 30 FPS
+//  //        2, although if you print the value beforehand it's set to 30 FPS, is the driver doing this?
+//  //
+//  iSourceSettings->setFrameDurationRange(Argus::Range<uint64_t>(33333334L));
 
     // begin capturing camera frames
     //
@@ -126,6 +126,7 @@ ArgusVideoCapture::~ArgusVideoCapture()
     }
 }
 
+/*
 bool ArgusVideoCapture::setFrameRate(const double frameRate)
 {
     bool success = true;
@@ -151,6 +152,7 @@ bool ArgusVideoCapture::setFrameRate(const double frameRate)
 
     return success;
 }
+*/
 
 cv::Mat ArgusVideoCapture::grab()
 {
@@ -200,6 +202,30 @@ uint64_t ArgusVideoCapture::getTimestamp() const
 uint32_t ArgusVideoCapture::getCaptureId() const
 {
     return captureId;
+}
+
+ArgusCameraSettings& ArgusVideoCapture::getCameraSettings()
+{
+    return argusCameraSettings;
+}
+
+bool ArgusVideoCapture::restart()
+{
+    bool success = true;
+
+    iSession->stopRepeat();
+    auto status = iSession->waitForIdle(ONE_SECOND_IN_NANOSECONDS);
+    if (status != Argus::STATUS_OK)
+    {
+        std::cout << "Error: Timeout whilst waiting for the repeating capture requests to stop\n";
+        std::cout << "Warning: Any prior settings updates may not have taken effect\n";
+        success = false;
+    }
+
+    status = iSession->repeat(request.get());
+    if (status != Argus::STATUS_OK) throw std::string("Failed to trigger repeating capture requests");
+
+    return success;
 }
 
 void ArgusVideoCapture::displayAttachedCameraInfo()

@@ -10,8 +10,9 @@
 
 #include <Argus/Argus.h>
 #include <EGLStream/EGLStream.h>
-
 #include <opencv2/opencv.hpp>
+
+#include "argus_camera_settings.hpp"
 
 class ArgusVideoCapture
 {
@@ -34,6 +35,8 @@ class ArgusVideoCapture
         EGLStream::IFrameConsumer* iFrameConsumer;
         Argus::UniqueObj<Argus::Request> request;
         Argus::ISourceSettings* iSourceSettings;
+        Argus::IAutoControlSettings* iAutoControlSettings;
+        ArgusCameraSettings argusCameraSettings;
         int32_t dmaBufferFd;
         void *cvImageBuffer;
         uint32_t captureId;
@@ -45,11 +48,13 @@ class ArgusVideoCapture
         ArgusVideoCapture(const int32_t deviceIndex, const int32_t sensorModeIndex);
         ~ArgusVideoCapture();
 
-        bool setFrameRate(const double frameRate);
         cv::Mat grab();
         cv::Size2i getResolution() const;
         uint64_t getTimestamp() const;
         uint32_t getCaptureId() const;
+
+        ArgusCameraSettings& getCameraSettings();
+        bool restart();
 
     private:
         static void displayUUID(const Argus::UUID& uuid);
