@@ -6,11 +6,20 @@
 #define ALLOTHETIC_ARGUS_CAMERA_SETTINGS_HPP
 
 #include <cstdint>
+#include <tuple>
 
 #include <Argus/Argus.h>
 
+//
+// FIXME! remove the API dependency on Argus::AwbMode
+//
+
 class ArgusCameraSettings
 {
+    public:
+        const static inline uint32_t MIN_VALUE = 0;
+        const static inline uint32_t MAX_VALUE = 1;
+
     private:
         Argus::ISourceSettings*& iSourceSettings;
         Argus::IAutoControlSettings*& iAutoControlSettings;
@@ -44,8 +53,8 @@ class ArgusCameraSettings
     public:
         ArgusCameraSettings(Argus::ISourceSettings*& iSourceSettings, Argus::IAutoControlSettings*& iAutoControlSettings);
 
-        Argus::Range<uint64_t> getFrameDurationRange() const;
-        bool getFrameDurationRange(const Argus::Range<uint64_t> range);
+        std::tuple<uint64_t, uint64_t> getFrameDurationRange() const;
+        bool getFrameDurationRange(const std::tuple<uint64_t, uint64_t> range);
 
         // note, these methods are implemented using the above get/setFrameDurationRange()
         //
@@ -54,13 +63,13 @@ class ArgusCameraSettings
 
         bool getAutoExposureLock() const;
         bool setAutoExposureLock(const bool lock);
-        Argus::Range<uint64_t> getExposureTimeRange() const;
+        std::tuple<uint64_t, uint64_t> getExposureTimeRange() const;
         bool setExposureTime(const uint64_t time);
-        bool setExposureTimeRange(const Argus::Range<uint64_t>& range);
+        bool setExposureTimeRange(const std::tuple<uint64_t, uint64_t>& range);
 
-        Argus::Range<float> getGainRange() const;
+        std::tuple<float, float> getGainRange() const;
         bool setGain(const float gain);
-        bool setGainRange(const Argus::Range<float>& range);
+        bool setGainRange(const std::tuple<float, float>& range);
 
         bool getAutoWhiteBalanceLock() const;
         bool setAutoWhiteBalanceLock(const bool lock);

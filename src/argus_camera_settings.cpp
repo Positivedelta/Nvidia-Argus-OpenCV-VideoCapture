@@ -11,17 +11,18 @@ ArgusCameraSettings::ArgusCameraSettings(Argus::ISourceSettings*& iSourceSetting
     iSourceSettings(iSourceSettings), iAutoControlSettings(iAutoControlSettings) {
 }
 
-Argus::Range<uint64_t> ArgusCameraSettings::getFrameDurationRange() const
+std::tuple<uint64_t, uint64_t> ArgusCameraSettings::getFrameDurationRange() const
 {
-    return iSourceSettings->getFrameDurationRange();
+    const auto range = iSourceSettings->getFrameDurationRange();
+    return {range.min(), range.max()};
 }
 
-bool ArgusCameraSettings::getFrameDurationRange(const Argus::Range<uint64_t> range)
+bool ArgusCameraSettings::getFrameDurationRange(const std::tuple<uint64_t, uint64_t> range)
 {
-    const auto status = iSourceSettings->setFrameDurationRange(range);
+    const auto status = iSourceSettings->setFrameDurationRange(Argus::Range(std::get<MIN_VALUE>(range), std::get<MAX_VALUE>(range)));
     if (status != Argus::STATUS_OK)
     {
-        std::cout << "Error: The call to setFrameDurationRange(Argus::Range<uint64_t>(" << range.min() << ", " << range.max() << ")) has failed\n";
+        std::cout << "Error: The call to setFrameDurationRange({" << std::get<MIN_VALUE>(range) << ", " << std::get<MAX_VALUE>(range) << "}) has failed\n";
         return false;
     }
 
@@ -63,44 +64,46 @@ bool ArgusCameraSettings::setAutoExposureLock(const bool lock)
     return true;
 }
 
-Argus::Range<uint64_t> ArgusCameraSettings::getExposureTimeRange() const
+std::tuple<uint64_t, uint64_t> ArgusCameraSettings::getExposureTimeRange() const
 {
-    return iSourceSettings->getExposureTimeRange();
+    const auto range = iSourceSettings->getExposureTimeRange();
+    return {range.min(), range.max()};
 }
 
 bool ArgusCameraSettings::setExposureTime(uint64_t time)
 {
-    return setExposureTimeRange(Argus::Range<uint64_t>(time));
+    return setExposureTimeRange({time, time});
 }
 
-bool ArgusCameraSettings::setExposureTimeRange(const Argus::Range<uint64_t>& range)
+bool ArgusCameraSettings::setExposureTimeRange(const std::tuple<uint64_t, uint64_t>& range)
 {
-    const auto status = iSourceSettings->setExposureTimeRange(range);
+    const auto status = iSourceSettings->setExposureTimeRange(Argus::Range(std::get<MIN_VALUE>(range), std::get<MAX_VALUE>(range)));
     if (status != Argus::STATUS_OK)
     {
-        std::cout << "Error: The call to setExposureTimeRange(Argus::Range<uint64_t>(" << range.min() << ", " << range.max() << ")) has failed\n";
+        std::cout << "Error: The call to setExposureTimeRange({" << std::get<MIN_VALUE>(range) << ", " << std::get<MAX_VALUE>(range) << "}) has failed\n";
         return false;
     }
 
     return true;
 }
 
-Argus::Range<float> ArgusCameraSettings::getGainRange() const
+std::tuple<float, float> ArgusCameraSettings::getGainRange() const
 {
-    return iSourceSettings->getGainRange();
+    const auto range = iSourceSettings->getGainRange();
+    return {range.min(), range.max()};
 }
 
 bool ArgusCameraSettings::setGain(const float gain)
 {
-    return setGainRange(Argus::Range<float>(gain));
+    return setGainRange({gain, gain});
 }
 
-bool ArgusCameraSettings::setGainRange(const Argus::Range<float>& range)
+bool ArgusCameraSettings::setGainRange(const std::tuple<float, float>& range)
 {
-    const auto status = iSourceSettings->setGainRange(range);
+    const auto status = iSourceSettings->setGainRange(Argus::Range(std::get<MIN_VALUE>(range), std::get<MAX_VALUE>(range)));
     if (status != Argus::STATUS_OK)
     {
-        std::cout << "Error: The call to setGainRange(Argus::Range<uint64_t>(" << range.min() << ", " << range.max() << ")) has failed\n";
+        std::cout << "Error: The call to setGainRange({" << std::get<MIN_VALUE>(range) << ", " << std::get<MAX_VALUE>(range) << "}) has failed\n";
         return false;
     }
 
