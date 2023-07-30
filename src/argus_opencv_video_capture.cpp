@@ -126,34 +126,6 @@ ArgusVideoCapture::~ArgusVideoCapture()
     }
 }
 
-/*
-bool ArgusVideoCapture::setFrameRate(const double frameRate)
-{
-    bool success = true;
-
-    iSession->stopRepeat();
-    auto status = iSession->waitForIdle(ONE_SECOND_IN_NANOSECONDS);
-    if (status != Argus::STATUS_OK)
-    {
-        std::cout << "Error: Timeout whilst waiting for the repeating capture requests to stop\n";
-        std::cout << "Warning: The call to setFrameRate(" << frameRate << ") may not have taken effect\n";
-        success = false;
-    }
-
-    status = iSourceSettings->setFrameDurationRange(Argus::Range<uint64_t>(1000000000 / frameRate));
-    if (status != Argus::STATUS_OK)
-    {
-        std::cout << "Error: The call to setFrameRate(" << frameRate << ") has failed\n";
-        success = false;
-    }
-
-    status = iSession->repeat(request.get());
-    if (status != Argus::STATUS_OK) throw std::string("Failed to trigger repeating capture requests");
-
-    return success;
-}
-*/
-
 cv::Mat ArgusVideoCapture::grab()
 {
     // acquire a captured camera frame, using mailbox mode

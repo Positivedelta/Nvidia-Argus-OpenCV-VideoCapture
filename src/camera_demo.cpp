@@ -27,12 +27,12 @@ int32_t main(int32_t argc, char** argv)
         auto capture = ArgusVideoCapture(camera, sensorMode);
         auto& settings = capture.getCameraSettings();
         settings.setFrameRate(30.0);
-        settings.setAutoWhiteBalanceMode(Argus::AWB_MODE_AUTO);
+        settings.setAutoWhiteBalanceMode(ArgusCameraSettings::AWB_MODE_AUTO);
         capture.restart();
 
         std::cout << "\nSelected Camera Settings:\n";
         std::cout << "\tMinimum Frame Rate: " << settings.getFrameRate() << " FPS\n";
-        std::cout << "\tAuto White Balance Mode: " << settings.getAutoWhiteBalanceMode().getName() << "\n";
+        std::cout << "\tAuto White Balance Mode: " << settings.getAutoWhiteBalanceModeName() << "\n";
         std::cout << "\tAuto White Balance lock: " << (settings.getAutoWhiteBalanceLock() ? "On" : "Off") << "\n";
 
         const auto [minExposureTime, maxExposureTime] = settings.getExposureTimeRange();

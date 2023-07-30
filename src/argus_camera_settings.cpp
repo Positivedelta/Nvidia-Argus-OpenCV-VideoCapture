@@ -3,7 +3,6 @@
 //
 
 #include <iostream>
-#include <string>
 
 #include "argus_camera_settings.hpp"
 
@@ -127,17 +126,23 @@ bool ArgusCameraSettings::setAutoWhiteBalanceLock(const bool lock)
     return true;
 }
 
-Argus::AwbMode ArgusCameraSettings::getAutoWhiteBalanceMode() const
+int32_t ArgusCameraSettings::getAutoWhiteBalanceMode() const
 {
-    return iAutoControlSettings->getAwbMode();
+    return awbIndexLookup[std::string(iAutoControlSettings->getAwbMode().getName())];
 }
 
-bool ArgusCameraSettings::setAutoWhiteBalanceMode(const Argus::AwbMode& mode)
+std::string ArgusCameraSettings::getAutoWhiteBalanceModeName() const
 {
-    const auto status = iAutoControlSettings->setAwbMode(mode);
+    return std::string(iAutoControlSettings->getAwbMode().getName());
+}
+
+bool ArgusCameraSettings::setAutoWhiteBalanceMode(const int32_t mode)
+{
+    const auto& awbMode = awbModeLookup[mode];
+    const auto status = iAutoControlSettings->setAwbMode(awbMode);
     if (status != Argus::STATUS_OK)
     {
-        std::cout << "Error: The call to setAutoWhiteBalanceMode(" << mode.getName() << ") has failed\n";
+        std::cout << "Error: The call to setAutoWhiteBalanceMode(" << mode << ") has failed\n";
         return false;
     }
 
