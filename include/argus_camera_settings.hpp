@@ -14,12 +14,19 @@
 
 #include <Argus/Argus.h>
 
+//
+// note, the Argus::Range and Argus::AwbMode classes have been abstracted away in the API
+//       not sure if this was sensible or not... they can always be restored!
+//
+
 class ArgusCameraSettings
 {
     public:
         const static inline uint32_t MIN_VALUE = 0;
         const static inline uint32_t MAX_VALUE = 1;
 
+        // note, this ordering must be maintained with the awbModeLookup array below
+        //
         const static inline int32_t AWB_MODE_OFF = 0;
         const static inline int32_t AWB_MODE_AUTO = 1;
         const static inline int32_t AWB_MODE_INCANDESCENT = 2;
