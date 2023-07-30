@@ -11,6 +11,12 @@ find_package(OpenCV REQUIRED)
 
 include_directories(${ARGUS_INCLUDE_DIRS} ${NVMMAPI_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/include)
 
-add_executable(camera-demo ${PROJECT_SOURCE_DIR}/src/camera_demo.cpp ${PROJECT_SOURCE_DIR}/src/argus_opencv_video_capture.cpp ${PROJECT_SOURCE_DIR}/src/argus_camera_settings.cpp)
+# create a shared library for use with other applications
+#
+add_library(argus-opencv-videocapture SHARED ${PROJECT_SOURCE_DIR}/src/argus_opencv_video_capture.cpp ${PROJECT_SOURCE_DIR}/src/argus_camera_settings.cpp)
+target_link_libraries(argus-opencv-videocapture ${ARGUS_LIBRARIES} ${NVMMAPI_LIBRARIES} ${OpenCV_LIBS})
 
-target_link_libraries(camera-demo ${ARGUS_LIBRARIES} ${NVMMAPI_LIBRARIES} ${OpenCV_LIBS})
+# build the demo camera application, linked against the above shared library
+#
+add_executable(camera-demo ${PROJECT_SOURCE_DIR}/src/camera_demo.cpp)
+target_link_libraries(camera-demo argus-opencv-videocapture)
