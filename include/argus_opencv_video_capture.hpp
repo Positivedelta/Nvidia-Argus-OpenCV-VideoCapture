@@ -6,6 +6,7 @@
 #define ALLOTHETIC_ARGUS_OPENCV_VIDEO_CAPTURE_HPP
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 #include <Argus/Argus.h>
@@ -33,6 +34,9 @@ class ArgusVideoCapture
         Argus::UniqueObj<Argus::OutputStream> stream;
         Argus::UniqueObj<EGLStream::FrameConsumer> consumer;
         EGLStream::IFrameConsumer* iFrameConsumer;
+        Argus::UniqueObj<EGLStream::Frame> frame;
+        EGLStream::IFrame* iFrame;
+        EGLStream::Image* image;
         Argus::UniqueObj<Argus::Request> request;
         Argus::ISourceSettings* iSourceSettings;
         Argus::IAutoControlSettings* iAutoControlSettings;
@@ -52,6 +56,8 @@ class ArgusVideoCapture
         cv::Size2i getResolution() const;
         uint64_t getTimestamp() const;
         uint32_t getCaptureId() const;
+
+        bool saveAsJPEG(const std::string& fileName) const;
 
         ArgusCameraSettings& getCameraSettings();
         bool restart();

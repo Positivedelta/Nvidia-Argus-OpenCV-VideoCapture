@@ -5,7 +5,6 @@
 #include <iomanip>
 #include <iostream>
 #include <sstream>
-#include <string>
 
 #include <Argus/Argus.h>
 #include <Argus/Ext/DolWdrSensorMode.h>
@@ -16,7 +15,7 @@
 
 ArgusVideoCapture::ArgusVideoCapture(const int32_t cameraDeviceIndex, const int32_t sensorModeIndex):
     cameraDeviceIndex(cameraDeviceIndex), sensorModeIndex(sensorModeIndex), argusCameraSettings(ArgusCameraSettings(iSourceSettings, iAutoControlSettings)),
-    dmaBufferFd(0), cvImageBuffer(nullptr), timestamp(uint64_t(0)) {
+    dmaBufferFd(0), cvImageBuffer(nullptr), image(nullptr), timestamp(uint64_t(0)) {
 
     // set up the Argus API framework
     //
@@ -83,16 +82,15 @@ ArgusVideoCapture::ArgusVideoCapture(const int32_t cameraDeviceIndex, const int3
     status = iRequest->enableOutputStream(stream.get());
     if (status != Argus::STATUS_OK) throw std::string("Failed to enable the capture request stream");
 
+    // notes 1, the following settings instances are used by the ArgusCameraSettings class
+    //       2, set the user selected sensor mode, passed in as a constructor argument
+    //
     iSourceSettings = Argus::interface_cast<Argus::ISourceSettings>(request);
     if (!iSourceSettings) throw std::string("Failed to get the Argus::ISourceSettings interface");
     iSourceSettings->setSensorMode(sensorModes[sensorModeIndex]);
 
     iAutoControlSettings = Argus::interface_cast<Argus::IAutoControlSettings>(iRequest->getAutoControlSettings());
     if (!iAutoControlSettings) throw std::string("Failed to get the Argus::IAutoControlSettings interface");
-//  iAutoControlSettings->setAwbMode(Argus::AWB_MODE_AUTO);
-//  iAutoControlSettings->setAwbLock(true);
-//  iAutoControlSettings->setAeAntibandingMode(Argus::AE_ANTIBANDING_MODE_OFF);
-//  iAutoControlSettings->setAeLock(true);
 
 //  // FIXME! should there be a default frame rate?
 //  //        1, set here to 30 FPS
@@ -124,22 +122,25 @@ ArgusVideoCapture::~ArgusVideoCapture()
         NvBufferMemUnMap(dmaBufferFd, 0, &cvImageBuffer);
         NvBufferDestroy(dmaBufferFd);
     }
+
+    cameraProvider.reset();
 }
 
 cv::Mat ArgusVideoCapture::grab()
 {
-    // acquire a captured camera frame, using mailbox mode
+    // notes 1, acquire a captured camera frame, using mailbox mode
+    //       2, frame and iFrame are retained as instance properties as they are required by image as used in saveAsJPEG()
     //
     auto status = Argus::STATUS_OK;
-    const auto frame = Argus::UniqueObj<EGLStream::Frame>(iFrameConsumer->acquireFrame(FIVE_SECONDS_IN_NANOSECONDS, &status));
+    frame = Argus::UniqueObj<EGLStream::Frame>(iFrameConsumer->acquireFrame(FIVE_SECONDS_IN_NANOSECONDS, &status));
     if (status != Argus::STATUS_OK) throw std::string("Failed to aquire a camera frame from the EGLStream::IFrameConsumer instance");
 
-    auto* iFrame = Argus::interface_cast<EGLStream::IFrame>(frame);
+    iFrame = Argus::interface_cast<EGLStream::IFrame>(frame);
     if (!iFrame) throw std::string("Failed to get the EGLStream::IFrame interface");
     timestamp = iFrame->getTime();
     captureId = iFrame->getNumber();
 
-    auto* image = iFrame->getImage();
+    image = iFrame->getImage();
     if (!image) throw std::string("Failed to get an image from the EGLStream::IFrame instance");
 
     auto* iNativeBuffer = Argus::interface_cast<EGLStream::NV::IImageNativeBuffer>(image);
@@ -152,9 +153,9 @@ cv::Mat ArgusVideoCapture::grab()
     }
 
     dmaBufferFd = iNativeBuffer->createNvBuffer(resolution, NvBufferColorFormat_ARGB32, NvBufferLayout_Pitch);
-/*  auto dmaBufferParams = NvBufferParams();
-    NvBufferGetParams(dmaBufferFd, &dmaBufferParams);
-    std::cout << "**** Pitch: " << dmaBufferParams.pitch[0] << ", Offset: " << dmaBufferParams.offset[0] << "\n"; */
+//  auto dmaBufferParams = NvBufferParams();
+//  NvBufferGetParams(dmaBufferFd, &dmaBufferParams);
+//  std::cout << "**** Pitch: " << dmaBufferParams.pitch[0] << ", Offset: " << dmaBufferParams.offset[0] << "\n";
 
     NvBufferMemMap(dmaBufferFd, 0, NvBufferMem_Read_Write, &cvImageBuffer);
     NvBufferMemSyncForCpu(dmaBufferFd, 0, &cvImageBuffer);
@@ -174,6 +175,23 @@ uint64_t ArgusVideoCapture::getTimestamp() const
 uint32_t ArgusVideoCapture::getCaptureId() const
 {
     return captureId;
+}
+
+bool ArgusVideoCapture::saveAsJPEG(const std::string& fileName) const
+{
+    if (!image) throw std::string("Unable to save the captured frame as a JPEG, grab() has not been called");
+
+    auto* iImageJPEG = Argus::interface_cast<EGLStream::IImageJPEG>(image);
+    if (!iImageJPEG)
+    {
+        std::cout << "Unable to save the captured frame as a JPEG, failed to aquire the EGLStream::IImageJPEG interface\n";
+        return false;
+    }
+
+    const auto status = iImageJPEG->writeJPEG(fileName.c_str());
+    if (status != Argus::STATUS_OK) throw std::string("Failed to write the captured frame as a JPEG to: " + fileName);
+
+    return true;
 }
 
 ArgusCameraSettings& ArgusVideoCapture::getCameraSettings()

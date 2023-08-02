@@ -60,8 +60,15 @@ int32_t main(int32_t argc, char** argv)
 //          std::cout << "Resolution: (" << cvFrameSize.width << ", " << cvFrameSize.height << ")\n";
 //          std::cout << "Timestamp: " << capture.getTimestamp() << ", Capture ID: " << capture.getCaptureId() << "\n";
 
-            if (cv::waitKey(1) == 27) break;
+            if (cv::waitKey(1) == 27)
+            {
+                // as a test, save the final frame as a JPEG
+                //
+                capture.saveAsJPEG("capture.jpg");
+                break;
+            }
         }
+
 
         cv::destroyAllWindows();
     }
