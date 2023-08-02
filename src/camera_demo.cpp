@@ -69,7 +69,6 @@ int32_t main(int32_t argc, char** argv)
             }
         }
 
-
         cv::destroyAllWindows();
     }
     catch (const std::string& message)
