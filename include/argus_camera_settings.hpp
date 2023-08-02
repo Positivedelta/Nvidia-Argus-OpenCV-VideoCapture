@@ -84,6 +84,8 @@ class ArgusCameraSettings
         //
 
     public:
+        static void displayAttachedCameraInfo();
+
         ArgusCameraSettings(Argus::ISourceSettings*& iSourceSettings, Argus::IAutoControlSettings*& iAutoControlSettings);
 
         std::tuple<uint64_t, uint64_t> getFrameDurationRange() const;
@@ -109,6 +111,10 @@ class ArgusCameraSettings
         int32_t getAutoWhiteBalanceMode() const;
         std::string getAutoWhiteBalanceModeName() const;
         bool setAutoWhiteBalanceMode(const int32_t mode);
+
+    private:
+        static void displayUUID(const Argus::UUID& uuid);
+        static void displaySensorModeInfo(Argus::SensorMode* sensorMode, const char* indent);
 };
 
 #endif

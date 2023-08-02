@@ -20,7 +20,7 @@ int32_t main(int32_t argc, char** argv)
 
     try
     {
-        ArgusVideoCapture::displayAttachedCameraInfo();
+        ArgusCameraSettings::displayAttachedCameraInfo();
 
         const auto camera = 0;
         const auto sensorMode = 5;

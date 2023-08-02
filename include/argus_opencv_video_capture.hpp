@@ -47,8 +47,6 @@ class ArgusVideoCapture
         uint64_t timestamp;
 
     public:
-        static void displayAttachedCameraInfo();
-
         ArgusVideoCapture(const int32_t deviceIndex, const int32_t sensorModeIndex);
         ~ArgusVideoCapture();
 
@@ -61,10 +59,6 @@ class ArgusVideoCapture
 
         ArgusCameraSettings& getCameraSettings();
         bool restart();
-
-    private:
-        static void displayUUID(const Argus::UUID& uuid);
-        static void displaySensorModeInfo(Argus::SensorMode* sensorMode, const char* indent);
 };
 
 #endif
