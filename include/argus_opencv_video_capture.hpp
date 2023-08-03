@@ -11,6 +11,7 @@
 
 #include <Argus/Argus.h>
 #include <EGLStream/EGLStream.h>
+#include <EGLStream/NV/ImageNativeBuffer.h>
 #include <opencv2/opencv.hpp>
 
 #include "argus_camera_settings.hpp"

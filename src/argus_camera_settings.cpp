@@ -5,10 +5,6 @@
 #include <iostream>
 #include <iomanip>
 
-#include <Argus/Argus.h>
-#include <Argus/Ext/DolWdrSensorMode.h>
-#include <Argus/Ext/PwlWdrSensorMode.h>
-
 #include "argus_camera_settings.hpp"
 
 ArgusCameraSettings::ArgusCameraSettings(Argus::ISourceSettings*& iSourceSettings, Argus::IAutoControlSettings*& iAutoControlSettings):

@@ -5,9 +5,6 @@
 #include <iostream>
 #include <sstream>
 
-#include <Argus/Argus.h>
-#include <EGLStream/NV/ImageNativeBuffer.h>
-
 #include "argus_opencv_video_capture.hpp"
 
 ArgusVideoCapture::ArgusVideoCapture(const int32_t cameraDeviceIndex, const int32_t sensorModeIndex):
@@ -174,6 +171,10 @@ uint32_t ArgusVideoCapture::getCaptureId() const
     return captureId;
 }
 
+// notes 1, annoyingly the EGLStream::IImageJPEG instance doesn't allow the JPEG quality to be specified
+//       2, this is only possible via a DIY version of this class, see the 09_camera_jpeg_capture sample
+//          be aware that this sample relies on the included NvJPEGEncoder class that must separately compiled and linked
+//
 bool ArgusVideoCapture::saveAsJPEG(const std::string& fileName) const
 {
     if (!image) throw std::string("Unable to save the captured frame as a JPEG, grab() has not been called");

@@ -13,6 +13,8 @@
 #include <tuple>
 
 #include <Argus/Argus.h>
+#include <Argus/Ext/DolWdrSensorMode.h>
+#include <Argus/Ext/PwlWdrSensorMode.h>
 
 //
 // note, the Argus::Range and Argus::AwbMode classes have been abstracted away in the API
