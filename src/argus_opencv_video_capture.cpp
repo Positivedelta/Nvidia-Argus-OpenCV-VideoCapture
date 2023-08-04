@@ -171,9 +171,9 @@ uint32_t ArgusVideoCapture::getCaptureId() const
     return captureId;
 }
 
-// notes 1, annoyingly the EGLStream::IImageJPEG instance doesn't allow the JPEG quality to be specified
-//       2, this is only possible via a DIY version of this class, see the 09_camera_jpeg_capture sample
-//          be aware that this sample relies on the included NvJPEGEncoder class that must separately compiled and linked
+// notes 1, this method uses a fixed JPEG quality value set to 95, the IImageJPEG instance doesn't allow this to be changed
+//       2, could implement this using a DIY version of this class, see the 09_camera_jpeg_capture sample, be aware that this
+//          sample relies on the included NvJPEGEncoder class and its dependencies that must separately compiled and linked
 //
 bool ArgusVideoCapture::saveAsJPEG(const std::string& fileName) const
 {
