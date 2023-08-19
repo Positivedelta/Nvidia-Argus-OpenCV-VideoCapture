@@ -7,7 +7,7 @@
 
 #include "argus_opencv_video_capture.hpp"
 
-ArgusVideoCapture::ArgusVideoCapture(const int32_t cameraDeviceIndex, const int32_t sensorModeIndex):
+bpl::ArgusVideoCapture::ArgusVideoCapture(const int32_t cameraDeviceIndex, const int32_t sensorModeIndex):
     cameraDeviceIndex(cameraDeviceIndex), sensorModeIndex(sensorModeIndex), argusCameraSettings(ArgusCameraSettings(iSourceSettings, iAutoControlSettings)),
     dmaBufferFd(0), cvImageBuffer(nullptr), image(nullptr), timestamp(uint64_t(0)) {
 
@@ -104,7 +104,7 @@ ArgusVideoCapture::ArgusVideoCapture(const int32_t cameraDeviceIndex, const int3
     if (status != Argus::STATUS_OK) throw std::string("The Argus::OutputStream has failed to connect");
 }
 
-ArgusVideoCapture::~ArgusVideoCapture()
+bpl::ArgusVideoCapture::~ArgusVideoCapture()
 {
     // note, no error checking as there is not much that can be done anyway...
     //
@@ -120,7 +120,7 @@ ArgusVideoCapture::~ArgusVideoCapture()
     cameraProvider.reset();
 }
 
-cv::Mat ArgusVideoCapture::grab()
+cv::Mat bpl::ArgusVideoCapture::grab()
 {
     // notes 1, acquire a captured camera frame, using mailbox mode
     //       2, frame and iFrame are retained as instance properties as they are required by image as used in saveAsJPEG()
@@ -156,17 +156,17 @@ cv::Mat ArgusVideoCapture::grab()
     return cv::Mat(resolution.height(), resolution.width(), CV_8UC4, cvImageBuffer);
 }
 
-cv::Size2i ArgusVideoCapture::getResolution() const
+cv::Size2i bpl::ArgusVideoCapture::getResolution() const
 {
     return cv::Size2i(resolution.width(), resolution.height());
 }
 
-uint64_t ArgusVideoCapture::getTimestamp() const
+uint64_t bpl::ArgusVideoCapture::getTimestamp() const
 {
     return timestamp;
 }
 
-uint32_t ArgusVideoCapture::getCaptureId() const
+uint32_t bpl::ArgusVideoCapture::getCaptureId() const
 {
     return captureId;
 }
@@ -175,7 +175,7 @@ uint32_t ArgusVideoCapture::getCaptureId() const
 //       2, could implement this using a DIY version of this class, see the 09_camera_jpeg_capture sample, be aware that this
 //          sample relies on the included NvJPEGEncoder class and its dependencies that must separately compiled and linked
 //
-bool ArgusVideoCapture::saveAsJPEG(const std::string& fileName) const
+bool bpl::ArgusVideoCapture::saveAsJPEG(const std::string& fileName) const
 {
     if (!image) throw std::string("Unable to save the captured frame as a JPEG, grab() has not been called");
 
@@ -192,12 +192,12 @@ bool ArgusVideoCapture::saveAsJPEG(const std::string& fileName) const
     return true;
 }
 
-ArgusCameraSettings& ArgusVideoCapture::getCameraSettings()
+bpl::ArgusCameraSettings& bpl::ArgusVideoCapture::getCameraSettings()
 {
     return argusCameraSettings;
 }
 
-bool ArgusVideoCapture::restart()
+bool bpl::ArgusVideoCapture::restart()
 {
     bool success = true;
 

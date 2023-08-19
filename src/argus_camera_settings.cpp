@@ -7,17 +7,17 @@
 
 #include "argus_camera_settings.hpp"
 
-ArgusCameraSettings::ArgusCameraSettings(Argus::ISourceSettings*& iSourceSettings, Argus::IAutoControlSettings*& iAutoControlSettings):
+bpl::ArgusCameraSettings::ArgusCameraSettings(Argus::ISourceSettings*& iSourceSettings, Argus::IAutoControlSettings*& iAutoControlSettings):
     iSourceSettings(iSourceSettings), iAutoControlSettings(iAutoControlSettings) {
 }
 
-std::tuple<uint64_t, uint64_t> ArgusCameraSettings::getFrameDurationRange() const
+std::tuple<uint64_t, uint64_t> bpl::ArgusCameraSettings::getFrameDurationRange() const
 {
     const auto range = iSourceSettings->getFrameDurationRange();
     return {range.min(), range.max()};
 }
 
-bool ArgusCameraSettings::getFrameDurationRange(const std::tuple<uint64_t, uint64_t> range)
+bool bpl::ArgusCameraSettings::getFrameDurationRange(const std::tuple<uint64_t, uint64_t> range)
 {
     const auto status = iSourceSettings->setFrameDurationRange(Argus::Range(std::get<MIN_VALUE>(range), std::get<MAX_VALUE>(range)));
     if (status != Argus::STATUS_OK)
@@ -29,13 +29,13 @@ bool ArgusCameraSettings::getFrameDurationRange(const std::tuple<uint64_t, uint6
     return true;
 }
 
-double ArgusCameraSettings::getFrameRate() const
+double bpl::ArgusCameraSettings::getFrameRate() const
 {
     const auto range = iSourceSettings->getFrameDurationRange();
     return 1000000000.0 / range.min();
 }
 
-bool ArgusCameraSettings::setFrameRate(const double rate)
+bool bpl::ArgusCameraSettings::setFrameRate(const double rate)
 {
     const auto status = iSourceSettings->setFrameDurationRange(Argus::Range<uint64_t>(1000000000 / rate));
     if (status != Argus::STATUS_OK)
@@ -47,12 +47,12 @@ bool ArgusCameraSettings::setFrameRate(const double rate)
     return true;
 }
 
-bool ArgusCameraSettings::getAutoExposureLock() const
+bool bpl::ArgusCameraSettings::getAutoExposureLock() const
 {
     return iAutoControlSettings->getAeLock();
 }
 
-bool ArgusCameraSettings::setAutoExposureLock(const bool lock)
+bool bpl::ArgusCameraSettings::setAutoExposureLock(const bool lock)
 {
     const auto status = iAutoControlSettings->setAeLock(lock);
     if (status != Argus::STATUS_OK)
@@ -64,18 +64,18 @@ bool ArgusCameraSettings::setAutoExposureLock(const bool lock)
     return true;
 }
 
-std::tuple<uint64_t, uint64_t> ArgusCameraSettings::getExposureTimeRange() const
+std::tuple<uint64_t, uint64_t> bpl::ArgusCameraSettings::getExposureTimeRange() const
 {
     const auto range = iSourceSettings->getExposureTimeRange();
     return {range.min(), range.max()};
 }
 
-bool ArgusCameraSettings::setExposureTime(uint64_t time)
+bool bpl::ArgusCameraSettings::setExposureTime(uint64_t time)
 {
     return setExposureTimeRange({time, time});
 }
 
-bool ArgusCameraSettings::setExposureTimeRange(const std::tuple<uint64_t, uint64_t>& range)
+bool bpl::ArgusCameraSettings::setExposureTimeRange(const std::tuple<uint64_t, uint64_t>& range)
 {
     const auto status = iSourceSettings->setExposureTimeRange(Argus::Range(std::get<MIN_VALUE>(range), std::get<MAX_VALUE>(range)));
     if (status != Argus::STATUS_OK)
@@ -87,18 +87,18 @@ bool ArgusCameraSettings::setExposureTimeRange(const std::tuple<uint64_t, uint64
     return true;
 }
 
-std::tuple<float, float> ArgusCameraSettings::getGainRange() const
+std::tuple<float, float> bpl::ArgusCameraSettings::getGainRange() const
 {
     const auto range = iSourceSettings->getGainRange();
     return {range.min(), range.max()};
 }
 
-bool ArgusCameraSettings::setGain(const float gain)
+bool bpl::ArgusCameraSettings::setGain(const float gain)
 {
     return setGainRange({gain, gain});
 }
 
-bool ArgusCameraSettings::setGainRange(const std::tuple<float, float>& range)
+bool bpl::ArgusCameraSettings::setGainRange(const std::tuple<float, float>& range)
 {
     const auto status = iSourceSettings->setGainRange(Argus::Range(std::get<MIN_VALUE>(range), std::get<MAX_VALUE>(range)));
     if (status != Argus::STATUS_OK)
@@ -110,12 +110,12 @@ bool ArgusCameraSettings::setGainRange(const std::tuple<float, float>& range)
     return true;
 }
 
-bool ArgusCameraSettings::getAutoWhiteBalanceLock() const
+bool bpl::ArgusCameraSettings::getAutoWhiteBalanceLock() const
 {
     return iAutoControlSettings->getAwbLock();
 }
 
-bool ArgusCameraSettings::setAutoWhiteBalanceLock(const bool lock)
+bool bpl::ArgusCameraSettings::setAutoWhiteBalanceLock(const bool lock)
 {
     const auto status = iAutoControlSettings->setAwbLock(lock);
     if (status != Argus::STATUS_OK)
@@ -127,17 +127,17 @@ bool ArgusCameraSettings::setAutoWhiteBalanceLock(const bool lock)
     return true;
 }
 
-int32_t ArgusCameraSettings::getAutoWhiteBalanceMode() const
+int32_t bpl::ArgusCameraSettings::getAutoWhiteBalanceMode() const
 {
     return awbIndexLookup[std::string(iAutoControlSettings->getAwbMode().getName())];
 }
 
-std::string ArgusCameraSettings::getAutoWhiteBalanceModeName() const
+std::string bpl::ArgusCameraSettings::getAutoWhiteBalanceModeName() const
 {
     return std::string(iAutoControlSettings->getAwbMode().getName());
 }
 
-bool ArgusCameraSettings::setAutoWhiteBalanceMode(const int32_t mode)
+bool bpl::ArgusCameraSettings::setAutoWhiteBalanceMode(const int32_t mode)
 {
     const auto& awbMode = awbModeLookup[mode];
     const auto status = iAutoControlSettings->setAwbMode(awbMode);
@@ -154,7 +154,7 @@ bool ArgusCameraSettings::setAutoWhiteBalanceMode(const int32_t mode)
 // static methods
 //
 
-void ArgusCameraSettings::displayAttachedCameraInfo()
+void bpl::ArgusCameraSettings::displayAttachedCameraInfo()
 {
     const char* indent = "    ";
 
@@ -226,7 +226,7 @@ void ArgusCameraSettings::displayAttachedCameraInfo()
 // private methods
 //
 
-void ArgusCameraSettings::displayUUID(const Argus::UUID& uuid)
+void bpl::ArgusCameraSettings::displayUUID(const Argus::UUID& uuid)
 {
     auto iosFlags = std::ios_base::fmtflags(std::cout.flags());
     std::cout << std::setfill('0') << std::setw(8) << std::hex << uuid.time_low << ",";
@@ -236,7 +236,7 @@ void ArgusCameraSettings::displayUUID(const Argus::UUID& uuid)
     std::cout.flags(iosFlags);
 }
 
-void ArgusCameraSettings::displaySensorModeInfo(Argus::SensorMode* sensorMode, const char* indent)
+void bpl::ArgusCameraSettings::displaySensorModeInfo(Argus::SensorMode* sensorMode, const char* indent)
 {
     auto iosFlags = std::ios_base::fmtflags(std::cout.flags());
 

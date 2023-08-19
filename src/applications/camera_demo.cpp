@@ -1,5 +1,5 @@
 //
-// (c) Bit Parallel Ltd - 2023
+// (c) Bit Parallel Ltd, August 2023
 //
 
 #include <cstdint>
@@ -20,14 +20,14 @@ int32_t main(int32_t argc, char** argv)
 
     try
     {
-        ArgusCameraSettings::displayAttachedCameraInfo();
+        bpl::ArgusCameraSettings::displayAttachedCameraInfo();
 
         const auto camera = 0;
         const auto sensorMode = 5;
-        auto capture = ArgusVideoCapture(camera, sensorMode);
+        auto capture = bpl::ArgusVideoCapture(camera, sensorMode);
         auto& settings = capture.getCameraSettings();
         settings.setFrameRate(30.0);
-        settings.setAutoWhiteBalanceMode(ArgusCameraSettings::AWB_MODE_AUTO);
+        settings.setAutoWhiteBalanceMode(bpl::ArgusCameraSettings::AWB_MODE_AUTO);
         capture.restart();
 
         std::cout << "\nSelected Camera Settings:\n";
