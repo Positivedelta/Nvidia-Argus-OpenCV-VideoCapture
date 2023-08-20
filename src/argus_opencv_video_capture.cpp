@@ -5,6 +5,13 @@
 #include <iostream>
 #include <sstream>
 
+// deal with NvBuffer and NvBufSurface difference between JetPack v4 and v5 respectively
+// env JETPACK_5_OR_GREATER_DETECTED is determined and passed in by CMake
+//
+#ifdef JETPACK_5_OR_GREATER_DETECTED
+#include "nvbuf_utils.h"
+#endif
+
 #include "argus_opencv_video_capture.hpp"
 
 bpl::ArgusVideoCapture::ArgusVideoCapture(const int32_t cameraDeviceIndex, const int32_t sensorModeIndex):
@@ -146,7 +153,14 @@ cv::Mat bpl::ArgusVideoCapture::grab()
         NvBufferDestroy(dmaBufferFd);
     }
 
+    // deal with NvBuffer and NvBufSurface difference between JetPack v4 and v5 respectively
+    // env JETPACK_4_DETECTED is determined and passed in by CMake
+    //
+#ifdef JETPACK_4_DETECTED
     dmaBufferFd = iNativeBuffer->createNvBuffer(resolution, NvBufferColorFormat_ARGB32, NvBufferLayout_Pitch);
+#else
+    dmaBufferFd = iNativeBuffer->createNvBuffer(resolution, NVBUF_COLOR_FORMAT_ARGB, NVBUF_LAYOUT_PITCH);
+#endif
 //  auto dmaBufferParams = NvBufferParams();
 //  NvBufferGetParams(dmaBufferFd, &dmaBufferParams);
 //  std::cout << "**** Pitch: " << dmaBufferParams.pitch[0] << ", Offset: " << dmaBufferParams.offset[0] << "\n";
