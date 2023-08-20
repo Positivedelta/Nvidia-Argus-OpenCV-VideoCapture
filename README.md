@@ -15,7 +15,7 @@ cmake ..
 
 #### Execute
 ```
-./camera-demo
+./argus-csi-camera-demo
 ```
 
 #### Tested Using
