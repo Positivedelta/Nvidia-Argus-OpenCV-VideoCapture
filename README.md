@@ -15,7 +15,9 @@ cmake ..
 
 #### Execute
 ```
-./camera-demo
+./argus-csi-camera-demo -q
+./argus-csi-camera-demo --query-camera-devices
+./argus-csi-camera-demo -d 0 -m 5
 ```
 
 #### Tested Using
