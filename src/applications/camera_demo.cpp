@@ -86,9 +86,9 @@ int32_t main(int32_t argc, char** argv)
 
             if (cv::waitKey(1) == 27)
             {
-                // as a test, save the final frame as a JPEG
-                //
-                capture.saveAsJPEG("capture.jpg");
+//              // as a test, save the final frame as a JPEG
+//              //
+//              capture.saveAsJPEG("capture.jpg");
                 break;
             }
         }
