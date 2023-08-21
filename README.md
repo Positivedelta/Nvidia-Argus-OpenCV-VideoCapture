@@ -13,6 +13,18 @@ cd build
 cmake ..
 ```
 
+#### Install Instructions
+To install the core shared library, the include files and test applications, use:
+
+```
+make install
+```
+
+The following default paths are used, edit `CMakeLists.txt` if you want to update these
+- The shared library is installed to `bit-parallel/lib`
+- The include files are installed to `bit-parallel/include/camera`
+- The test appliaction is installed to `bit-parallel/bin/camera`
+
 #### Execute
 ```
 ./argus-csi-camera-demo -q
