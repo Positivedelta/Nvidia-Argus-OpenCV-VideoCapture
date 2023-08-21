@@ -7,6 +7,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <stdexcept>
 #include <tuple>
 
 #include <opencv2/opencv.hpp>
@@ -20,17 +21,39 @@ int32_t main(int32_t argc, char** argv)
 
     try
     {
-        bpl::ArgusCameraSettings::displayAttachedCameraInfo();
+        if ((argc == 2) && ((std::string(argv[1]) == "-q") || (std::string(argv[1]) == "-query-camera-devices")))
+        {
+            bpl::ArgusCameraSettings::displayAttachedCameraInfo();
+            return 0;
+        }
+        else if ((argc != 5) || (std::string(argv[1]) != "-d") || (std::string(argv[3]) != "-m"))
+        {
+            std::cout << "Invalid arguments, please use:\n";
+            std::cout << argv[0] << " -q, --query-camera-devices\n";
+            std::cout << argv[0] << " -d [#camera device] -m [#sensor mode]\n";
+            return 0;
+        }
 
-        const auto camera = 0;
-        const auto sensorMode = 5;
+        auto camera = 0;
+        auto sensorMode = 0;
+        try
+        {
+            camera = std::stoi(argv[2]);
+            sensorMode = std::stoi(argv[4]);
+        }
+        catch (const std::exception& ex)
+        {
+            std::cout << "Invalid numeric parameter\n";
+            return 0;
+        }
+
         auto capture = bpl::ArgusVideoCapture(camera, sensorMode);
         auto& settings = capture.getCameraSettings();
         settings.setFrameRate(30.0);
         settings.setAutoWhiteBalanceMode(bpl::ArgusCameraSettings::AWB_MODE_AUTO);
         capture.restart();
 
-        std::cout << "\nSelected Camera Settings:\n";
+        std::cout << "Selected Camera Settings:\n";
         std::cout << "\tMinimum Frame Rate: " << settings.getFrameRate() << " FPS\n";
         std::cout << "\tAuto White Balance Mode: " << settings.getAutoWhiteBalanceModeName() << "\n";
         std::cout << "\tAuto White Balance lock: " << (settings.getAutoWhiteBalanceLock() ? "On" : "Off") << "\n";
@@ -41,6 +64,7 @@ int32_t main(int32_t argc, char** argv)
 
         const auto [minGain, maxGain] = settings.getGainRange();
         std::cout << "\tGain Range, Min: " << minGain << ", Max: " << maxGain << "\n";
+        std::cout << std::endl;
 
         const auto fpsLocation = cv::Point(6, 30);
         const auto fpsColour = cv::Scalar(0xff, 0xff, 0xff);
